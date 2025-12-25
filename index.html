@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة إدارة Firebase</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: #f5f7fa;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        header {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            text-align: center;
+            border-bottom: 5px solid #667eea;
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .dashboard {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+        }
+        
+        @media (max-width: 768px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .stat-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            margin: 10px 0;
+            color: #667eea;
+        }
+        
+        .btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 5px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+        }
+        
+        .btn:hover {
+            background: #764ba2;
+            transform: translateY(-2px);
+        }
+        
+        .btn-success { background: #4caf50; }
+        .btn-success:hover { background: #388e3c; }
+        
+        .btn-warning { background: #ff9800; }
+        .btn-warning:hover { background: #f57c00; }
+        
+        .btn-danger { background: #f44336; }
+        .btn-danger:hover { background: #d32f2f; }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        
+        th, td {
+            padding: 12px;
+            text-align: right;
+            border-bottom: 1px solid #eee;
+        }
+        
+        th {
+            background: #f8f9fa;
+            font-weight: bold;
+        }
+        
+        .token-display {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            font-family: monospace;
+            word-break: break-all;
+            font-size: 0.9rem;
+            border: 1px solid #ddd;
+        }
+        
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            background: #e3f2fd;
+            border-right: 4px solid #2196f3;
+        }
+        
+        .alert-success {
+            background: #e8f5e9;
+            border-color: #4caf50;
+        }
+        
+        .alert-warning {
+            background: #fff3e0;
+            border-color: #ff9800;
+        }
+        
+        .alert-danger {
+            background: #ffebee;
+            border-color: #f44336;
+        }
+        
+        .input-group {
+            margin: 15px 0;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+        
+        input, textarea, select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+        
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        
+        .firebase-config {
+            background: #f0f2f5;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            font-family: monospace;
+            font-size: 0.9rem;
+        }
+        
+        .log-entry {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            font-size: 0.9rem;
+        }
+        
+        .log-time {
+            color: #666;
+            font-size: 0.8rem;
+        }
+        
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 15px 0;
+        }
+        
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+        
+        .status-dot.online {
+            background: #4caf50;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(76, 175, 80, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-fire"></i> لوحة إدارة Firebase</h1>
+            <p>مراقبة وإدارة نظام متابعة الأدوية</p>
+        </header>
+        
+        <div class="dashboard">
+            <!-- الإحصائيات -->
+            <div class="card">
+                <h2><i class="fas fa-chart-bar"></i> إحصائيات النظام</h2>
+                
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div>المرضى النشطين</div>
+                        <div class="stat-value" id="active-patients">0</div>
+                    </div>
+                    <div class="stat-item">
+                        <div>مقدمي الرعاية</div>
+                        <div class="stat-value" id="caregivers-count">0</div>
+                    </div>
+                    <div class="stat-item">
+                        <div>الإشعارات اليوم</div>
+                        <div class="stat-value" id="today-notifications">0</div>
+                    </div>
+                    <div class="stat-item">
+                        <div>الأدوية المأخوذة</div>
+                        <div class="stat-value" id="medications-taken">0</div>
+                    </div>
+                </div>
+                
+                <div class="status-indicator">
+                    <div class="status-dot" id="firebase-status-dot"></div>
+                    <span id="firebase-status-text">جاري الاتصال...</span>
+                </div>
+            </div>
+            
+            <!-- إرسال إشعارات -->
+            <div class="card">
+                <h2><i class="fas fa-paper-plane"></i> إرسال إشعارات</h2>
+                
+                <div class="input-group">
+                    <label>العنوان:</label>
+                    <input type="text" id="notification-title" placeholder="عنوان الإشعار">
+                </div>
+                
+                <div class="input-group">
+                    <label>الرسالة:</label>
+                    <textarea id="notification-body" placeholder="نص الإشعار"></textarea>
+                </div>
+                
+                <div class="input-group">
+                    <label>المستلم:</label>
+                    <select id="notification-target">
+                        <option value="all">جميع المستخدمين</option>
+                        <option value="patients">المرضى فقط</option>
+                        <option value="caregivers">مقدمو الرعاية فقط</option>
+                        <option value="specific">مستخدم محدد</option>
+                    </select>
+                </div>
+                
+                <div class="input-group" id="specific-user-box" style="display: none;">
+                    <label>FCM Token للمستخدم:</label>
+                    <input type="text" id="specific-user-token" placeholder="أدخل FCM Token">
+                </div>
+                
+                <div class="action-buttons">
+                    <button class="btn btn-success" id="send-notification-btn">
+                        <i class="fas fa-paper-plane"></i> إرسال الإشعار
+                    </button>
+                    <button class="btn" id="test-notification-btn">
+                        <i class="fas fa-bell"></i> اختبار إشعار
+                    </button>
+                </div>
+            </div>
+            
+            <!-- قاعدة البيانات -->
+            <div class="card">
+                <h2><i class="fas fa-database"></i> قاعدة البيانات</h2>
+                
+                <div class="alert">
+                    <h4><i class="fas fa-info-circle"></i> معلومات المشروع</h4>
+                    <div class="firebase-config">
+                        Project ID: medtrackmamdouh<br>
+                        Database: Firestore<br>
+                        Storage: Firebase Storage<br>
+                        Authentication: Enabled
+                    </div>
+                </div>
+                
+                <div style="overflow-x: auto;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>المجموعة</th>
+                                <th>عدد المستندات</th>
+                                <th>الإجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody id="collections-table">
+                            <tr>
+                                <td>patients</td>
+                                <td id="patients-count">0</td>
+                                <td><button class="btn btn-small" onclick="viewCollection('patients')">عرض</button></td>
+                            </tr>
+                            <tr>
+                                <td>caregivers</td>
+                                <td id="caregivers-db-count">0</td>
+                                <td><button class="btn btn-small" onclick="viewCollection('caregivers')">عرض</button></td>
+                            </tr>
+                            <tr>
+                                <td>medication_events</td>
+                                <td id="medication-events-count">0</td>
+                                <td><button class="btn btn-small" onclick="viewCollection('medication_events')">عرض</button></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <button class="btn" id="refresh-db-btn" style="margin-top: 15px;">
+                    <i class="fas fa-redo"></i> تحديث البيانات
+                </button>
+            </div>
+            
+            <!-- السجلات والمراقبة -->
+            <div class="card">
+                <h2><i class="fas fa-history"></i> سجلات النظام</h2>
+                
+                <div id="system-logs" style="max-height: 300px; overflow-y: auto; margin: 15px 0; background: #f8f9fa; border-radius: 8px;">
+                    <!-- سيتم عرض السجلات هنا -->
+                </div>
+                
+                <div class="input-group">
+                    <label>إضافة سجل يدوي:</label>
+                    <textarea id="manual-log" placeholder="اكتب سجلاً جديداً..."></textarea>
+                </div>
+                
+                <button class="btn" id="add-log-btn">
+                    <i class="fas fa-plus"></i> إضافة سجل
+                </button>
+                <button class="btn btn-danger" id="clear-logs-btn">
+                    <i class="fas fa-trash"></i> مسح السجلات
+                </button>
+            </div>
+            
+            <!-- أدوات Firebase -->
+            <div class="card">
+                <h2><i class="fas fa-tools"></i> أدوات Firebase</h2>
+                
+                <div class="alert alert-warning">
+                    <h4><i class="fas fa-exclamation-triangle"></i> أدوات متقدمة</h4>
+                    <p>استخدم هذه الأدوات بحذر:</p>
+                </div>
+                
+                <div class="input-group">
+                    <label>FCM Token للاختبار:</label>
+                    <div class="token-display" id="test-fcm-token">
+                        جاري التحميل...
+                    </div>
+                    <button class="btn btn-small" id="copy-test-token">
+                        <i class="fas fa-copy"></i> نسخ
+                    </button>
+                </div>
+                
+                <div class="input-group">
+                    <label>Cloud Function URL:</label>
+                    <input type="text" value="https://us-central1-medtrackmamdouh.cloudfunctions.net/sendNotification" readonly>
+                </div>
+                
+                <div class="action-buttons">
+                    <button class="btn btn-warning" id="test-cloud-function">
+                        <i class="fas fa-bolt"></i> اختبار Cloud Function
+                    </button>
+                    <button class="btn btn-danger" id="reset-system-btn">
+                        <i class="fas fa-redo"></i> إعادة تعيين النظام
+                    </button>
+                </div>
+            </div>
+            
+            <!-- معلومات التكامل -->
+            <div class="card">
+                <h2><i class="fas fa-code"></i> معلومات التكامل</h2>
+                
+                <div class="alert alert-success">
+                    <h4><i class="fas fa-check-circle"></i> تكوين Firebase</h4>
+                    <div class="firebase-config">
+const firebaseConfig = {
+    apiKey: "AIzaSyAMJjeucsuWiIrOKJ19AK6VT9zLS7ZB6MY",
+    authDomain: "medtrackmamdouh.firebaseapp.com",
+    projectId: "medtrackmamdouh",
+    storageBucket: "medtrackmamdouh.firebasestorage.app",
+    messagingSenderId: "588115249832",
+    appId: "1:588115249832:web:1e8a2f5dd57db68047909d"
+};
+                    </div>
+                </div>
+                
+                <div class="alert">
+                    <h4><i class="fas fa-key"></i> VAPID Key</h4>
+                    <div class="token-display">
+                        BAHsKe2WSUDaXMcroeNScTprRmE2NTIBDyv9fYmVsuUddhERvybIKM7EBNgSHnuZ91Q9QU9V034IXnVDbeEG9oQ
+                    </div>
+                </div>
+                
+                <div style="margin-top: 20px;">
+                    <h4>روابط النظام:</h4>
+                    <div style="display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap;">
+                        <a href="patient.html" target="_blank" class="btn" style="text-decoration: none;">
+                            <i class="fas fa-user-injured"></i> واجهة المريض
+                        </a>
+                        <a href="caregiver.html" target="_blank" class="btn btn-success" style="text-decoration: none;">
+                            <i class="fas fa-user-nurse"></i> واجهة مقدم الرعاية
+                        </a>
+                        <a href="https://console.firebase.google.com/project/medtrackmamdouh" target="_blank" class="btn btn-warning" style="text-decoration: none;">
+                            <i class="fas fa-external-link-alt"></i> Firebase Console
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <footer style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; color: #666;">
+            <p>نظام إدارة Firebase &copy; 2024 | مشروع: medtrackmamdouh</p>
+            <p id="last-update" style="font-size: 0.9rem; margin-top: 5px;"></p>
+        </footer>
+    </div>
+    
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-messaging-compat.js"></script>
+    
+    <script>
+        // تكوين Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyAMJjeucsuWiIrOKJ19AK6VT9zLS7ZB6MY",
+            authDomain: "medtrackmamdouh.firebaseapp.com",
+            projectId: "medtrackmamdouh",
+            storageBucket: "medtrackmamdouh.firebasestorage.app",
+            messagingSenderId: "588115249832",
+            appId: "1:588115249832:web:1e8a2f5dd57db68047909d"
+        };
+        
+        // تهيئة Firebase
+        const app = firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        let messaging = null;
+        let systemLogs = [];
+        
+        // تهيئة التطبيق
+        document.addEventListener('DOMContentLoaded', async function() {
+            try {
+                await initializeFirebase();
+                setupEventListeners();
+                loadDatabaseStats();
+                updateLastUpdateTime();
+                
+                // تحديث دوري
+                setInterval(() => {
+                    loadDatabaseStats();
+                    updateConnectionStatus('متصل', 'connected');
+                }, 30000);
+                
+                addLog('تم تحميل لوحة الإدارة', 'success');
+            } catch (error) {
+                console.error('خطأ في التهيئة:', error);
+                addLog('خطأ في تهيئة النظام: ' + error.message, 'error');
+            }
+        });
+        
+        // تهيئة Firebase
+        async function initializeFirebase() {
+            try {
+                updateConnectionStatus('جاري الاتصال...', 'connecting');
+                
+                if (firebase.messaging.isSupported()) {
+                    messaging = firebase.messaging();
+                    
+                    const token = await messaging.getToken({
+                        vapidKey: 'BAHsKe2WSUDaXMcroeNScTprRmE2NTIBDyv9fYmVsuUddhERvybIKM7EBNgSHnuZ91Q9QU9V034IXnVDbeEG9oQ'
+                    });
+                    
+                    if (token) {
+                        document.getElementById('test-fcm-token').textContent = token;
+                        updateConnectionStatus('متصل', 'connected');
+                        addLog('تم تهيئة Firebase بنجاح', 'success');
+                    }
+                }
+            } catch (error) {
+                updateConnectionStatus('خطأ في الاتصال', 'error');
+                addLog('خطأ في تهيئة Firebase: ' + error.message, 'error');
+            }
+        }
+        
+        // جلب إحصائيات قاعدة البيانات
+        async function loadDatabaseStats() {
+            try {
+                // جلب عدد المرضى
+                const patientsSnapshot = await db.collection('patients').get();
+                document.getElementById('patients-count').textContent = patientsSnapshot.size;
+                document.getElementById('active-patients').textContent = patientsSnapshot.size;
+                
+                // جلب عدد مقدمي الرعاية
+                const caregiversSnapshot = await db.collection('caregivers').get();
+                document.getElementById('caregivers-db-count').textContent = caregiversSnapshot.size;
+                document.getElementById('caregivers-count').textContent = caregiversSnapshot.size;
+                
+                // جلب عدد إشعارات اليوم
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                
+                const eventsSnapshot = await db.collection('medication_events')
+                    .where('timestamp', '>=', today)
+                    .get();
+                
+                document.getElementById('medication-events-count').textContent = eventsSnapshot.size;
+                document.getElementById('today-notifications').textContent = eventsSnapshot.size;
+                
+                // حساب الأدوية المأخوذة
+                const takenEvents = eventsSnapshot.docs.filter(doc => 
+                    doc.data().type === 'medication_taken'
+                ).length;
+                
+                document.getElementById('medications-taken').textContent = takenEvents;
+                
+            } catch (error) {
+                console.error('خطأ في جلب الإحصائيات:', error);
+                addLog('خطأ في جلب إحصائيات قاعدة البيانات', 'error');
+            }
+        }
+        
+        // إرسال إشعار
+        async function sendNotificationToAll(title, body, target = 'all', specificToken = null) {
+            try {
+                let tokens = [];
+                
+                if (target === 'all') {
+                    const patients = await db.collection('patients').get();
+                    const caregivers = await db.collection('caregivers').get();
+                    
+                    patients.forEach(doc => {
+                        const token = doc.data().fcmToken;
+                        if (token) tokens.push(token);
+                    });
+                    
+                    caregivers.forEach(doc => {
+                        const token = doc.data().fcmToken;
+                        if (token) tokens.push(token);
+                    });
+                } else if (target === 'patients') {
+                    const patients = await db.collection('patients').get();
+                    patients.forEach(doc => {
+                        const token = doc.data().fcmToken;
+                        if (token) tokens.push(token);
+                    });
+                } else if (target === 'caregivers') {
+                    const caregivers = await db.collection('caregivers').get();
+                    caregivers.forEach(doc => {
+                        const token = doc.data().fcmToken;
+                        if (token) tokens.push(token);
+                    });
+                } else if (target === 'specific' && specificToken) {
+                    tokens = [specificToken];
+                }
+                
+                if (tokens.length === 0) {
+                    addLog('لا توجد أجهزة مستهدفة', 'warning');
+                    return;
+                }
+                
+                // إرسال لكل Token
+                let successCount = 0;
+                for (const token of tokens) {
+                    try {
+                        const response = await fetch('https://us-central1-medtrackmamdouh.cloudfunctions.net/sendNotification', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                to: token,
+                                notification: { title, body },
+                                data: {
+                                    type: 'admin_notification',
+                                    admin: true,
+                                    timestamp: new Date().toISOString()
+                                }
+                            })
+                        });
+                        
+                        if (response.ok) successCount++;
+                    } catch (error) {
+                        console.error(`خطأ في إرسال إلى ${token.substring(0, 20)}...`);
+                    }
+                }
+                
+                addLog(`تم إرسال الإشعار إلى ${successCount}/${tokens.length} مستخدم`, 'success');
+                
+            } catch (error) {
+                console.error('خطأ في إرسال الإشعار:', error);
+                addLog('خطأ في إرسال الإشعار: ' + error.message, 'error');
+            }
+        }
+        
+        // تهيئة مستمعات الأحداث
+        function setupEventListeners() {
+            // إرسال إشعار
+            document.getElementById('send-notification-btn').addEventListener('click', async function() {
+                const title = document.getElementById('notification-title').value;
+                const body = document.getElementById('notification-body').value;
+                const target = document.getElementById('notification-target').value;
+                const specificToken = document.getElementById('specific-user-token').value;
+                
+                if (!title || !body) {
+                    addLog('الرجاء إدخال عنوان ورسالة', 'warning');
+                    return;
+                }
+                
+                await sendNotificationToAll(title, body, target, specificToken);
+                document.getElementById('notification-title').value = '';
+                document.getElementById('notification-body').value = '';
+            });
+            
+            // اختبار إشعار
+            document.getElementById('test-notification-btn').addEventListener('click', async function() {
+                const token = document.getElementById('test-fcm-token').textContent;
+                if (token && !token.includes('جاري')) {
+                    await sendNotificationToAll('اختبار من الإدارة', 'هذا إشعار اختبار من لوحة الإدارة', 'specific', token);
+                }
+            });
+            
+            // تغيير نوع المستهدف
+            document.getElementById('notification-target').addEventListener('change', function() {
+                const specificBox = document.getElementById('specific-user-box');
+                specificBox.style.display = this.value === 'specific' ? 'block' : 'none';
+            });
+            
+            // تحديث البيانات
+            document.getElementById('refresh-db-btn').addEventListener('click', function() {
+                loadDatabaseStats();
+                addLog('تم تحديث بيانات قاعدة البيانات', 'info');
+            });
+            
+            // نسخ Token
+            document.getElementById('copy-test-token').addEventListener('click', function() {
+                const token = document.getElementById('test-fcm-token').textContent;
+                if (token && !token.includes('جاري')) {
+                    copyToClipboard(token);
+                    addLog('تم نسخ الرمز إلى الحافظة', 'success');
+                }
+            });
+            
+            // اختبار Cloud Function
+            document.getElementById('test-cloud-function').addEventListener('click', async function() {
+                try {
+                    const token = document.getElementById('test-fcm-token').textContent;
+                    if (token.includes('جاري')) {
+                        addLog('الرجاء الانتظار لتهيئة الرمز', 'warning');
+                        return;
+                    }
+                    
+                    const response = await fetch('https://us-central1-medtrackmamdouh.cloudfunctions.net/sendNotification', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            to: token,
+                            notification: {
+                                title: '✅ اختبار Cloud Function',
+                                body: 'تم اختبار Cloud Function بنجاح!'
+                            }
+                        })
+                    });
+                    
+                    if (response.ok) {
+                        addLog('تم اختبار Cloud Function بنجاح', 'success');
+                    } else {
+                        addLog('فشل اختبار Cloud Function', 'error');
+                    }
+                } catch (error) {
+                    addLog('خطأ في اختبار Cloud Function: ' + error.message, 'error');
+                }
+            });
+            
+            // إضافة سجل
+            document.getElementById('add-log-btn').addEventListener('click', function() {
+                const logText = document.getElementById('manual-log').value;
+                if (logText) {
+                    addLog(logText, 'info');
+                    document.getElementById('manual-log').value = '';
+                }
+            });
+            
+            // مسح السجلات
+            document.getElementById('clear-logs-btn').addEventListener('click', function() {
+                if (confirm('هل تريد مسح جميع السجلات؟')) {
+                    systemLogs = [];
+                    updateLogsDisplay();
+                    addLog('تم مسح جميع السجلات', 'warning');
+                }
+            });
+            
+            // إعادة تعيين النظام
+            document.getElementById('reset-system-btn').addEventListener('click', function() {
+                if (confirm('⚠️ تحذير: هذه العملية ستحذف جميع البيانات المحلية. هل أنت متأكد؟')) {
+                    localStorage.clear();
+                    location.reload();
+                }
+            });
+        }
+        
+        // عرض مجموعة
+        function viewCollection(collectionName) {
+            addLog(`جاري تحميل مجموعة ${collectionName}...`, 'info');
+            window.open(`https://console.firebase.google.com/project/medtrackmamdouh/firestore/data/~2F${collectionName}`, '_blank');
+        }
+        
+        // إضافة سجل
+        function addLog(message, type = 'info') {
+            const log = {
+                id: Date.now(),
+                message: message,
+                type: type,
+                time: new Date().toLocaleTimeString('ar-EG'),
+                timestamp: new Date().toISOString()
+            };
+            
+            systemLogs.unshift(log);
+            if (systemLogs.length > 100) {
+                systemLogs = systemLogs.slice(0, 100);
+            }
+            
+            updateLogsDisplay();
+            
+            // حفظ في localStorage
+            localStorage.setItem('adminLogs', JSON.stringify(systemLogs));
+        }
+        
+        // تحديث عرض السجلات
+        function updateLogsDisplay() {
+            const logsContainer = document.getElementById('system-logs');
+            let html = '';
+            
+            systemLogs.forEach(log => {
+                const typeClass = log.type === 'error' ? 'alert-danger' : 
+                                 log.type === 'success' ? 'alert-success' : 
+                                 log.type === 'warning' ? 'alert-warning' : 'alert';
+                
+                html += `
+                    <div class="log-entry ${typeClass}" style="margin: 5px 0;">
+                        <div>${log.message}</div>
+                        <div class="log-time">${log.time}</div>
+                    </div>
+                `;
+            });
+            
+            logsContainer.innerHTML = html || '<div class="alert">لا توجد سجلات</div>';
+        }
+        
+        // تحميل السجلات المحفوظة
+        function loadSavedLogs() {
+            const saved = localStorage.getItem('adminLogs');
+            if (saved) {
+                try {
+                    systemLogs = JSON.parse(saved);
+                    updateLogsDisplay();
+                } catch (error) {
+                    console.error('خطأ في تحميل السجلات:', error);
+                }
+            }
+        }
+        
+        // وظائف مساعدة
+        function updateConnectionStatus(message, status) {
+            const statusDot = document.getElementById('firebase-status-dot');
+            const statusText = document.getElementById('firebase-status-text');
+            
+            statusText.textContent = message;
+            
+            if (status === 'connected') {
+                statusDot.className = 'status-dot online';
+                statusText.style.color = '#4caf50';
+            } else if (status === 'connecting') {
+                statusDot.className = 'status-dot';
+                statusDot.style.background = '#ff9800';
+                statusText.style.color = '#ff9800';
+            } else {
+                statusDot.className = 'status-dot';
+                statusDot.style.background = '#f44336';
+                statusText.style.color = '#f44336';
+            }
+        }
+        
+        function updateLastUpdateTime() {
+            const now = new Date();
+            const dateString = now.toLocaleDateString('ar-EG');
+            const timeString = now.toLocaleTimeString('ar-EG');
+            document.getElementById('last-update').textContent = `آخر تحديث: ${dateString} ${timeString}`;
+            
+            setInterval(() => {
+                const now = new Date();
+                const dateString = now.toLocaleDateString('ar-EG');
+                const timeString = now.toLocaleTimeString('ar-EG');
+                document.getElementById('last-update').textContent = `آخر تحديث: ${dateString} ${timeString}`;
+            }, 60000);
+        }
+        
+        function copyToClipboard(text) {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+        }
+        
+        // تحميل السجلات عند البدء
+        loadSavedLogs();
+    </script>
+</body>
+</html>
